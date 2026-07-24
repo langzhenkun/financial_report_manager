@@ -1,36 +1,68 @@
-from models.report import Report
-from utils.file_utils import read_json, write_json
+from utils.db_utils import get_connection
 
-REPORT_FILE = "data/reports.json"
 
 def get_all_reports():
-    reports = read_json(REPORT_FILE)
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        sql = "select id, company, title, rating, date from reports order by id"
+        cursor.execute(sql)
+        reports = cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
     return reports
 
 def add_report(company, title, rating, date):
-    reports = read_json(REPORT_FILE)
-    new_id = max(report["id"] for report in reports) + 1
-    report = Report(new_id, company, title, rating, date)
-    reports.append(report.to_dict())
-    write_json(REPORT_FILE, reports)
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        sql = "insert into reports(company, title, rating, date) values(%s, %s, %s, %s)"
+        cursor.execute(sql, (company, title, rating, date))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
 
 def search_reports_by_company(company):
-    reports = read_json(REPORT_FILE)
+    conn = get_connection()
+    cursor = conn.cursor()
 
-    result = []
-
-    for report in reports:
-        if report["company"] == company:
-            result.append(report)
-
-    return result
+    try:
+        sql = """
+            select id, company, title, rating, date
+            from reports
+            where company = %s
+            order by id
+        """
+        cursor.execute(sql, (company,))
+        reports = cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
+    return reports
 
 def delete_report(report_id):
-    reports = read_json(REPORT_FILE)
-    for i in range(len(reports)):
-        if reports[i]["id"] == report_id:
-            reports.pop(i)
-            write_json(REPORT_FILE, reports)
-            return True
-    return False
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        sql = """
+            delete from reports
+            where id = %s
+        """
+        cursor.execute(sql, (report_id,))
+        affected_rows = cursor.rowcount
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+    return affected_rows > 0
 
