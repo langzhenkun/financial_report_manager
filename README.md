@@ -24,8 +24,6 @@
 ```text
 financial_report_manager/
   main.py
-  data/
-    reports.json          # 旧版 JSON 数据，当前版本不再读写
   logs/
     app.log
   models/
@@ -101,4 +99,4 @@ python main.py
 
 ## 说明
 
-`data/reports.json` 是旧版数据文件，当前 MySQL 版本不会再读取或修改它。旧数据如需继续使用，需要单独迁移到 MySQL。
+当前版本已移除旧版 JSON 数据文件，研报数据统一使用 MySQL 存储和管理。
