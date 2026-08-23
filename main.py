@@ -62,6 +62,7 @@ def main():
             if len(reports) == 0:
                 print("当前暂无研报")
             else:
+                print(f"共找到 {len(reports)} 份研报")
                 for report in reports:
                     print_report(report)
         elif choice == "3":
